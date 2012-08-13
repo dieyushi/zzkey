@@ -35,7 +35,7 @@ type Info struct {
 func showAllRecord() {
 	_, err := os.Stat(KEY_ROOT_DB)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "database not found!\n")
+		fmt.Fprintf(os.Stderr, "database not found!\nyou can run 'clean' or 'set' a record to initial the database\n")
 		return
 	}
 
@@ -58,7 +58,7 @@ func showAllRecord() {
 func getRecord(p string) (e error) {
 	_, err := os.Stat(KEY_ROOT_DB)
 	if err != nil {
-		e = errors.New("database not found!")
+		e = errors.New("database not found!\nyou can run 'clean' or 'set' a record to initial the database")
 		return
 	}
 
@@ -125,7 +125,7 @@ func setRecord(p string) {
 func unsetRecord(p string) {
 	_, err := os.Stat(KEY_ROOT_DB)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "database not found!\n")
+		fmt.Fprintf(os.Stderr, "database not found!\nyou can run 'clean' or 'set' a record to initial the database\n")
 		return
 	}
 
@@ -180,15 +180,10 @@ func cleanRecords() {
 	}
 }
 
-func test() {
-	buf, _ := ioutil.ReadFile(KEY_ROOT_DB)
-	fmt.Printf("%s\n", decryptFromBase64(string(buf), password))
-}
-
 func searchRecord(p string) {
 	_, err := os.Stat(KEY_ROOT_DB)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "database not found!\n")
+		fmt.Fprintf(os.Stderr, "database not found!\nyou can run 'clean' or 'set' a record to initial the database\n")
 		return
 	}
 
@@ -380,8 +375,6 @@ func zzkeyShell() {
 			cleanRecords()
 		case "passwd":
 			changePasswd()
-		case "test":
-			test()
 		default:
 			commandlist := strings.Fields(command)
 			if len(commandlist) != 2 {
