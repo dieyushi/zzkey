@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/user"
 	"path"
@@ -85,25 +86,37 @@ func setRecord(p string) {
 		fmt.Fprintf(os.Stderr, "record already exists\n")
 		return
 	}
-	fmt.Printf("%s's Password :", p)
-	pass, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Printf("\n")
 
-	fmt.Printf("Repeat Password :")
-	passagain, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Printf("\n")
+	fmt.Printf("use random password ?\n[y/n] ")
+	ra := bufio.NewReader(os.Stdin)
+	uinput, _, _ := ra.ReadLine()
+	var setpass string
+	if string(uinput) == "y" {
+		pass := randomPasswd(16)
+		fmt.Printf("random password : %s\n", pass)
+		setpass = pass
+	} else {
+		fmt.Printf("%s's Password :", p)
+		pass, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
+		fmt.Printf("\n")
 
-	if string(pass) != string(passagain) {
-		fmt.Fprintf(os.Stderr, "not match\n")
-		return
+		fmt.Printf("Repeat Password :")
+		passagain, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
+		fmt.Printf("\n")
+
+		if string(pass) != string(passagain) {
+			fmt.Fprintf(os.Stderr, "not match\n")
+			return
+		}
+		setpass = string(pass)
 	}
 
-	fmt.Printf("%s's Description :", p)
+	fmt.Printf("%s's Description : ", p)
 	r := bufio.NewReader(os.Stdin)
 	input, _, _ := r.ReadLine()
 	description := string(input)
 
-	i := Info{p, string(pass), string(description)}
+	i := Info{p, string(setpass), string(description)}
 	j, _ := json.Marshal(i)
 	j = append(j, '\n')
 
@@ -221,6 +234,16 @@ func showHelp() {
 	fmt.Println("\tpasswd\t\t change zzkey passwd")
 	fmt.Println("\texit\t\t exit zzkey")
 	fmt.Println("\thelp\t\t show this message")
+}
+
+func randomPasswd(length int) string {
+	alphabet := "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ0123456789"
+	randomPassword := make([]byte, length)
+
+	for i := 0; i < len(randomPassword); i++ {
+		randomPassword[i] = alphabet[rand.Int()%len(alphabet)]
+	}
+	return string(randomPassword)
 }
 
 func checkKeyRoot() {
