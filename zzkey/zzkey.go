@@ -42,13 +42,16 @@ func showAllRecord() {
 	buf, _ := ioutil.ReadFile(KEY_ROOT_DB)
 	data := strings.Split(decryptFromBase64(string(buf), password), "\n")
 
+	var i int
 	for _, n := range data {
 		var m Info
 		json.Unmarshal([]byte(n), &m)
 		if m.Name != "" {
 			fmt.Printf("%s\n", m.Name)
+			i++
 		}
 	}
+	fmt.Printf("total %d\n", i)
 	return
 }
 
@@ -162,6 +165,21 @@ func resetRecord(p string) {
 	setRecord(p)
 }
 
+func cleanRecords() {
+	fmt.Printf("this operation will erase all your data,\nstill go on?\n[y/n] ")
+	r := bufio.NewReader(os.Stdin)
+	input, _, _ := r.ReadLine()
+	if string(input) != "y" {
+		return
+	}
+
+	if e := ioutil.WriteFile(KEY_ROOT_DB, []byte(""), 0600); e != nil {
+		fmt.Fprintf(os.Stderr, "clean database failed\n")
+	} else {
+		fmt.Printf("database cleaned\n")
+	}
+}
+
 func test() {
 	buf, _ := ioutil.ReadFile(KEY_ROOT_DB)
 	fmt.Printf("%s\n", decryptFromBase64(string(buf), password))
@@ -204,6 +222,8 @@ func showHelp() {
 	fmt.Println("\tsearch\t\t search exist record")
 	fmt.Println("\tversion\t\t show version string")
 	fmt.Println("\tshowall\t\t show all record's name")
+	fmt.Println("\tclean\t\t clean the database")
+	fmt.Println("\tpasswd\t\t change zzkey passwd")
 	fmt.Println("\texit\t\t exit zzkey")
 	fmt.Println("\thelp\t\t show this message")
 }
@@ -226,9 +246,30 @@ func checkKeyPasswd() bool {
 	return true
 }
 
+func changePasswd() {
+	fmt.Printf("current password :")
+	currentPass, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Printf("\n")
+	if string(currentPass) != password {
+		fmt.Fprintf(os.Stderr, "password error\n")
+		return
+	}
+	createPasswd()
+	buf, _ := ioutil.ReadFile(KEY_ROOT_DB)
+	data := decryptFromBase64(string(buf), string(currentPass))
+
+	k := encryptToBase64(data, password)
+	ioutil.WriteFile(KEY_ROOT_DB, []byte(k), 0600)
+	fmt.Printf("password changed\n")
+}
+
 func createPasswd() {
-	fmt.Printf("This is your first time working with zzkey\n")
-	fmt.Printf("Please input a password to protect your infomation\n")
+	_, err := os.Stat(KEY_ROOT_PASSWD)
+	if err != nil {
+		fmt.Printf("This is your first time working with zzkey\n")
+		fmt.Printf("Please input a password to protect your infomation\n")
+	}
+
 	fmt.Printf("Password :")
 	buf, _ := terminal.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Printf("\n")
@@ -240,6 +281,7 @@ func createPasswd() {
 		return
 	}
 
+	password = string(buf)
 	buf2 := string(buf) + "--salt add by zzkey--"
 	h := sha1.New()
 	io.WriteString(h, buf2)
@@ -334,6 +376,10 @@ func zzkeyShell() {
 			showAllRecord()
 		case "version":
 			fmt.Println(VERSION)
+		case "clean":
+			cleanRecords()
+		case "passwd":
+			changePasswd()
 		case "test":
 			test()
 		default:
