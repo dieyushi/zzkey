@@ -237,7 +237,7 @@ func showHelp() {
 }
 
 func randomPasswd(length int) string {
-	alphabet := "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ0123456789"
+	alphabet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	randomPassword := make([]byte, length)
 
 	for i := 0; i < len(randomPassword); i++ {
