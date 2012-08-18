@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/json"
@@ -11,7 +12,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
+	"math/big"
 	"os"
 	"os/user"
 	"path"
@@ -238,10 +239,12 @@ func showHelp() {
 
 func randomPasswd(length int) string {
 	alphabet := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	alphabetLength := int64(len(alphabet))
 	randomPassword := make([]byte, length)
 
-	for i := 0; i < len(randomPassword); i++ {
-		randomPassword[i] = alphabet[rand.Int()%len(alphabet)]
+	for i := 0; i < length; i++ {
+		r, _ := rand.Int(rand.Reader, big.NewInt(alphabetLength))
+		randomPassword[i] = alphabet[r.Int64()]
 	}
 	return string(randomPassword)
 }
