@@ -1,4 +1,11 @@
-zzkey
-=====
+# zzkey  
+zzkey is a password manager written in [golang](http://golang.org)
 
-program written for learning golang
+## build  
+first clone this repo
+>go get  
+>go build  
+>go install  
+
+## usage
+run zzkey and input help
