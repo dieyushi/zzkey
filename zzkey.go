@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"code.google.com/p/go.crypto/ssh/terminal"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -17,7 +18,6 @@ import (
 	"os/user"
 	"path"
 	"strings"
-	"zzkey/terminal"
 )
 
 var VERSION string = "zzkey 0.1-dev"
