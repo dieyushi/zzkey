@@ -4,6 +4,7 @@ linux.
 
 ## requirements
 [xsel](http://www.vergenet.net/~conrad/software/xsel/)
+[readline](http://www.gnu.org/software/readline/)
 
 ## build  
 first clone this repo
