@@ -424,13 +424,11 @@ func decryptFromBase64(content string, k string) string {
 }
 
 func zzkeyShell() {
-	r := bufio.NewReader(os.Stdin)
+	prompt := "zzkey> "
 	for {
-		fmt.Print("zzkey>")
-		input, _, _ := r.ReadLine()
-		command := string(input)
+		command := ReadLine(&prompt)
 
-		switch command {
+		switch *command {
 		case "exit":
 			fmt.Println("Bye")
 			return
@@ -445,7 +443,7 @@ func zzkeyShell() {
 		case "passwd":
 			changePasswd()
 		default:
-			commandlist := strings.Fields(command)
+			commandlist := strings.Fields(*command)
 			if len(commandlist) != 2 {
 				fmt.Fprintln(os.Stderr, "parse parameter error")
 			} else {
@@ -476,6 +474,7 @@ func zzkeyShell() {
 				}
 			}
 		}
+		AddHistory(*command)
 	}
 }
 
