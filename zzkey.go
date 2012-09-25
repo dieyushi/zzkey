@@ -15,9 +15,11 @@ import (
 	"io/ioutil"
 	"math/big"
 	"os"
+	"os/exec"
 	"os/user"
 	"path"
 	"strings"
+	"time"
 )
 
 var VERSION string = "zzkey 0.1-dev"
@@ -79,6 +81,46 @@ func getRecord(p string) (e error) {
 		}
 	}
 	e = errors.New("record not found!")
+	return
+}
+
+func getRecordToClipboard(p string) (e error) {
+	_, err := os.Stat(KEY_ROOT_DB)
+	if err != nil {
+		e = errors.New("database not found!\nyou can run 'clean' or 'set' a record to initial the database")
+		return
+	}
+
+	buf, _ := ioutil.ReadFile(KEY_ROOT_DB)
+	data := strings.Split(decryptFromBase64(string(buf), password), "\n")
+
+	for _, n := range data {
+		var m Info
+		json.Unmarshal([]byte(n), &m)
+		if m.Name == p {
+			err := setClipboard(m.Passwd)
+			if err != nil {
+				e = errors.New("copy record to clipboard error")
+				return
+			}
+			e = nil
+			fmt.Println("password copied to the clipboard, existing for 30s.")
+			return
+		}
+	}
+	e = errors.New("record not found!")
+	return
+}
+
+func setClipboard(password string) (e error) {
+	cmd1 := exec.Command("echo", password)
+	cmd2 := exec.Command("xsel", "-b")
+	cmd2.Stdin, _ = cmd1.StdoutPipe()
+	cmd2.Stdout = os.Stdout
+
+	cmd2.Start()
+	cmd1.Run()
+	e = cmd2.Wait()
 	return
 }
 
@@ -227,7 +269,8 @@ func showHelp() {
 	fmt.Println("\tset\t\t set a new record")
 	fmt.Println("\tunset\t\t delete an existing record")
 	fmt.Println("\treset\t\t reset an existing record")
-	fmt.Println("\tget\t\t get a exist record")
+	fmt.Println("\tget\t\t copy record password to clipboard")
+	fmt.Println("\tsee\t\t show an existing record")
 	fmt.Println("\tsearch\t\t search exist record")
 	fmt.Println("\tversion\t\t show version string")
 	fmt.Println("\tshowall\t\t show all record's name")
@@ -408,6 +451,15 @@ func zzkeyShell() {
 			} else {
 				switch commandlist[0] {
 				case "get":
+					if e := getRecordToClipboard(commandlist[1]); e != nil {
+						fmt.Fprintf(os.Stderr, "%s\n", e.Error())
+					}
+					funcClearClipboard := func(delay int) {
+						time.Sleep(time.Duration(delay) * time.Second)
+						setClipboard("")
+					}
+					go funcClearClipboard(30)
+				case "see":
 					if e := getRecord(commandlist[1]); e != nil {
 						fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 					}
