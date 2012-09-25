@@ -1,5 +1,9 @@
 # zzkey  
-zzkey is a password manager written in [golang](http://golang.org)
+zzkey is a password manager written in [golang](http://golang.org),only for
+linux.
+
+## requirements
+[xsel](http://www.vergenet.net/~conrad/software/xsel/)
 
 ## build  
 first clone this repo
