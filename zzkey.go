@@ -267,9 +267,11 @@ func showHelp() {
 	fmt.Printf("Usage:  [option] [...params]\n")
 	fmt.Println("Options:")
 	fmt.Println("\tset\t\t set a new record")
+	fmt.Println("\tsete\t\t set a new record and exit")
 	fmt.Println("\tunset\t\t delete an existing record")
 	fmt.Println("\treset\t\t reset an existing record")
 	fmt.Println("\tget\t\t copy record password to clipboard")
+	fmt.Println("\tgete\t\t copy record password to clipboard and exit")
 	fmt.Println("\tsee\t\t show an existing record")
 	fmt.Println("\tsearch\t\t search exist record")
 	fmt.Println("\tversion\t\t show version string")
@@ -457,12 +459,25 @@ func zzkeyShell() {
 						setClipboard("")
 					}
 					go funcClearClipboard(30)
+				case "gete":
+					if e := getRecordToClipboard(commandlist[1]); e != nil {
+						fmt.Fprintf(os.Stderr, "%s\n", e.Error())
+					}
+					funcClearClipboard := func(delay int) {
+						time.Sleep(time.Duration(delay) * time.Second)
+						setClipboard("")
+					}
+					funcClearClipboard(30)
+					return
 				case "see":
 					if e := getRecord(commandlist[1]); e != nil {
 						fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 					}
 				case "set":
 					setRecord(commandlist[1])
+				case "sete":
+					setRecord(commandlist[1])
+					return
 				case "unset":
 					unsetRecord(commandlist[1])
 				case "reset":
