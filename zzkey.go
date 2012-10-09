@@ -113,7 +113,7 @@ func getRecordToClipboard(p string) (e error) {
 }
 
 func setClipboard(password string) (e error) {
-	cmd1 := exec.Command("echo", password)
+	cmd1 := exec.Command("echo", "-n", password)
 	cmd2 := exec.Command("xsel", "-b")
 	cmd2.Stdin, _ = cmd1.StdoutPipe()
 	cmd2.Stdout = os.Stdout
