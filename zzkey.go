@@ -294,6 +294,15 @@ func randomPasswd(length int) string {
 	return string(randomPassword)
 }
 
+func checkXsel() bool {
+	_, err := exec.Command("xsel", "--version").Output()
+	if err != nil {
+		fmt.Printf("zzkey couldn't find xsel in PATH, please install xsel first.\n")
+		return false
+	}
+	return true
+}
+
 func checkKeyRoot() {
 	_, err := os.Stat(KEY_ROOT)
 	if err != nil {
@@ -494,6 +503,9 @@ func zzkeyShell() {
 }
 
 func main() {
+	if !checkXsel() {
+		return
+	}
 	checkKeyRoot()
 	if !checkKeyPasswd() {
 		createPasswd()
