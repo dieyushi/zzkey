@@ -36,6 +36,9 @@ type Info struct {
 	Description string
 }
 
+var BLUECOLOR = "\033[94m"
+var COLOREND = "\033[0m"
+
 func showAllRecord() {
 	_, err := os.Stat(KEY_ROOT_DB)
 	if err != nil {
@@ -51,11 +54,14 @@ func showAllRecord() {
 		var m Info
 		json.Unmarshal([]byte(n), &m)
 		if m.Name != "" {
-			fmt.Printf("%s\n", m.Name)
+			if i%4 == 0 && i != 0 {
+				fmt.Printf("\n")
+			}
+			fmt.Printf("%-15s  ", m.Name)
 			i++
 		}
 	}
-	fmt.Printf("total %d\n", i)
+	fmt.Printf("\ntotal %d\n", i)
 	return
 }
 
@@ -435,7 +441,7 @@ func decryptFromBase64(content string, k string) string {
 }
 
 func zzkeyShell() {
-	prompt := "zzkey> "
+	prompt := BLUECOLOR + "zzkey> " + COLOREND
 	for {
 		command := ReadLine(&prompt)
 
