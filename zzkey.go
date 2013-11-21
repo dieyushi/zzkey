@@ -79,9 +79,9 @@ func getRecord(p string) (e error) {
 		var m Info
 		json.Unmarshal([]byte(n), &m)
 		if m.Name == p {
-			fmt.Printf("[-]Name:        %s\n", p)
-			fmt.Printf("[-]Password:    %s\n", m.Passwd)
-			fmt.Printf("[-]Description: %s\n", m.Description)
+			fmt.Printf("[-] Name:        %s\n", p)
+			fmt.Printf("[-] Password:    %s\n", m.Passwd)
+			fmt.Printf("[-] Description: %s\n", m.Description)
 			e = nil
 			return
 		}
@@ -100,21 +100,32 @@ func getRecordToClipboard(p string) (e error) {
 	buf, _ := ioutil.ReadFile(KEY_ROOT_DB)
 	data := strings.Split(decryptFromBase64(string(buf), password), "\n")
 
+	found := make(map[string]string)
 	for _, n := range data {
 		var m Info
 		json.Unmarshal([]byte(n), &m)
-		if m.Name == p {
-			err := setClipboard(m.Passwd)
+		if strings.Contains(m.Name, p) {
+			found[m.Name] = m.Passwd
+		}
+	}
+
+	if len(found) == 1 {
+		for _, password := range found {
+			err := setClipboard(password)
 			if err != nil {
 				e = errors.New("copy record to clipboard error")
 				return
 			}
-			e = nil
 			fmt.Println("password copied to the clipboard, existing for 30s.")
-			return
+		}
+	} else if len(found) == 0 {
+		e = errors.New("record not found!")
+	} else if len(found) > 1 {
+		fmt.Fprintf(os.Stderr, "more than one record match %s\n", p)
+		for name, _ := range found {
+			fmt.Printf("[-] %s\n", name)
 		}
 	}
-	e = errors.New("record not found!")
 	return
 }
 
@@ -257,7 +268,7 @@ func searchRecord(p string) {
 		var m Info
 		json.Unmarshal([]byte(n), &m)
 		if strings.Contains(m.Name, p) || strings.Contains(m.Description, p) {
-			fmt.Printf("[-]%s\n", m.Name)
+			fmt.Printf("[-] %s\n", m.Name)
 			found++
 		}
 	}
