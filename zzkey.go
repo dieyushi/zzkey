@@ -276,7 +276,7 @@ func showHelp() {
 	fmt.Println("\tsete\t\t set a new record and exit")
 	fmt.Println("\tunset\t\t delete an existing record")
 	fmt.Println("\treset\t\t reset an existing record")
-	fmt.Println("\tget\t\t copy record password to clipboard")
+	fmt.Println("\tget\t\t copy record password to clipboard, get is optional")
 	fmt.Println("\tgete\t\t copy record password to clipboard and exit")
 	fmt.Println("\tsee\t\t show an existing record")
 	fmt.Println("\tsearch\t\t search exist record")
@@ -460,18 +460,23 @@ func zzkeyShell() {
 		case "passwd":
 			changePasswd()
 		default:
+			funcClearClipboard := func(delay int) {
+				time.Sleep(time.Duration(delay) * time.Second)
+				setClipboard("")
+			}
 			commandlist := strings.Fields(*command)
-			if len(commandlist) != 2 {
+			if len(commandlist) == 1 {
+				if e := getRecordToClipboard(commandlist[0]); e != nil {
+					fmt.Fprintf(os.Stderr, "unexpect parameter\n")
+				}
+				go funcClearClipboard(30)
+			} else if len(commandlist) != 2 {
 				fmt.Fprintln(os.Stderr, "parse parameter error")
 			} else {
 				switch commandlist[0] {
 				case "get":
 					if e := getRecordToClipboard(commandlist[1]); e != nil {
 						fmt.Fprintf(os.Stderr, "%s\n", e.Error())
-					}
-					funcClearClipboard := func(delay int) {
-						time.Sleep(time.Duration(delay) * time.Second)
-						setClipboard("")
 					}
 					go funcClearClipboard(30)
 				case "gete":
