@@ -39,6 +39,8 @@ type Info struct {
 var BLUECOLOR = "\033[94m"
 var COLOREND = "\033[0m"
 
+var lastActiveTime int64
+
 func showAllRecord() {
 	_, err := os.Stat(KEY_ROOT_DB)
 	if err != nil {
@@ -451,10 +453,26 @@ func decryptFromBase64(content string, k string) string {
 	return string(plaintext)
 }
 
+func checkLastActive() {
+	for {
+		if time.Now().Unix()-lastActiveTime > 20 {
+			break
+		} else {
+			time.Sleep(1 * time.Second)
+		}
+	}
+	setClipboard("")
+	fmt.Fprintf(os.Stderr, "no input within 20s, exiting\n")
+	os.Exit(0)
+}
+
 func zzkeyShell() {
 	prompt := BLUECOLOR + "zzkey> " + COLOREND
+	lastActiveTime = time.Now().Unix()
+	go checkLastActive()
 	for {
 		command := ReadLine(&prompt)
+		lastActiveTime = time.Now().Unix()
 
 		switch *command {
 		case "exit":
@@ -471,16 +489,11 @@ func zzkeyShell() {
 		case "passwd":
 			changePasswd()
 		default:
-			funcClearClipboard := func(delay int) {
-				time.Sleep(time.Duration(delay) * time.Second)
-				setClipboard("")
-			}
 			commandlist := strings.Fields(*command)
 			if len(commandlist) == 1 {
 				if e := getRecordToClipboard(commandlist[0]); e != nil {
 					fmt.Fprintf(os.Stderr, "unexpect parameter\n")
 				}
-				go funcClearClipboard(30)
 			} else if len(commandlist) != 2 {
 				fmt.Fprintln(os.Stderr, "parse parameter error")
 			} else {
@@ -489,16 +502,10 @@ func zzkeyShell() {
 					if e := getRecordToClipboard(commandlist[1]); e != nil {
 						fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 					}
-					go funcClearClipboard(30)
 				case "gete":
 					if e := getRecordToClipboard(commandlist[1]); e != nil {
 						fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 					}
-					funcClearClipboard := func(delay int) {
-						time.Sleep(time.Duration(delay) * time.Second)
-						setClipboard("")
-					}
-					funcClearClipboard(30)
 					return
 				case "see":
 					if e := getRecord(commandlist[1]); e != nil {
@@ -539,4 +546,6 @@ func main() {
 		return
 	}
 	zzkeyShell()
+	setClipboard("")
+	return
 }
