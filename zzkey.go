@@ -118,11 +118,21 @@ func getRecordToClipboard(p string) (e error) {
 				e = errors.New("copy record to clipboard error")
 				return
 			}
-			fmt.Println("password copied to the clipboard, existing for 30s.")
+			fmt.Println("password copied to the clipboard.")
 		}
 	} else if len(found) == 0 {
 		e = errors.New("record not found!")
 	} else if len(found) > 1 {
+		fullMatch, ok := found[p]
+		if ok {
+			err := setClipboard(fullMatch)
+			if err != nil {
+				e = errors.New("copy record to clipboard error")
+				return
+			}
+			fmt.Println("password copied to the clipboard.")
+			return
+		}
 		fmt.Fprintf(os.Stderr, "more than one record match %s\n", p)
 		for name, _ := range found {
 			fmt.Printf("[-] %s\n", name)
@@ -462,7 +472,7 @@ func checkLastActive() {
 		}
 	}
 	setClipboard("")
-	fmt.Fprintf(os.Stderr, "no input within 20s, exiting\n")
+	fmt.Fprintf(os.Stderr, "\nno input within 20s, exiting\n")
 	os.Exit(0)
 }
 
