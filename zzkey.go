@@ -18,6 +18,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -143,7 +144,12 @@ func getRecordToClipboard(p string) (e error) {
 
 func setClipboard(password string) (e error) {
 	cmd1 := exec.Command("echo", "-n", password)
-	cmd2 := exec.Command("xsel", "-b")
+	var cmd2 *exec.Cmd
+	if runtime.GOOS == "linux" {
+		cmd2 = exec.Command("xsel", "-b")
+	} else {
+		cmd2 = exec.Command("pbcopy")
+	}
 	cmd2.Stdin, _ = cmd1.StdoutPipe()
 	cmd2.Stdout = os.Stdout
 
@@ -542,8 +548,12 @@ func zzkeyShell() {
 }
 
 func main() {
-	if !checkXsel() {
-		return
+	if runtime.GOOS == "windows" {
+		fmt.Println("zzkey dosn't support windows now.")
+	} else if runtime.GOOS == "linux" {
+		if !checkXsel() {
+			return
+		}
 	}
 	checkKeyRoot()
 	if !checkKeyPasswd() {
